@@ -1,0 +1,23 @@
+<div class="container">
+    <div class="col-lg-3 center-block">
+        <div>
+            <div ng-show="loginError!=null" class="alert-danger"
+                 style="position: absolute;margin-top: -5px;">Login or
+                password incorrect
+            </div>
+            <br>
+            <input type="text" class="form-control" ng-model="username" name="username"
+                   placeholder="Login" autofocus><br>
+            <input type="password" class="form-control" ng-model="password" name="password"
+                   placeholder="Password"/> <br>
+            <br>
+            <button class="btn btn-success" ng-click="login()">
+                Login
+            </button>
+        </div>
+    </div>
+       <br>
+    <a href="/register" class="btn btn-primary">
+        Register >>
+    </a>
+</div>

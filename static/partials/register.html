@@ -1,0 +1,20 @@
+<div class="container">
+    <div class="col-lg-3 center-block">
+        <form name='registrationForm'>
+            <div ng-show="registerError!=null" class="alert-danger"
+                 style="position: absolute;margin-top: -5px;">{{ registerError }}
+            </div>
+            <br>
+            <input type="text" class="form-control" name="username"
+                   ng-model="username"
+                   placeholder="Login" autofocus><br>
+            <input type="password" class="form-control" name="password"
+                   ng-model="password"
+                   placeholder="Password"/> <br>
+            <br>
+            <button class="btn btn-success" ng-click="register()">
+                Get started!
+            </button>
+        </form>
+    </div>
+</div>

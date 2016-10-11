@@ -1,0 +1,18 @@
+.footer-left {
+    float: left;
+}
+
+.footer-right {
+    float: right;
+}
+
+.flashes {
+    list-style-type: none;
+    margin-left: 0;
+}
+
+.block {
+    height: 100px;
+    width: 100px;
+    text-align: center;
+}
