@@ -3,9 +3,11 @@ from flask import Flask, render_template
 from api import api
 from db import models
 from auth import auth
+from common import cache
 
 app = Flask(__name__)
 app.config.from_pyfile('app.conf')
+cache.cache.init_app(app)
 # db init
 db = models.db
 db.init_app(app)

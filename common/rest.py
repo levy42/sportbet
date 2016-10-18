@@ -1,37 +1,59 @@
 from functools import wraps
 from flask import Blueprint, jsonify, make_response
 
+import custom_exceptions
+import cache
+
 
 class Rest(Blueprint):
-    def route(self, rule, **options):
-        """Like :meth:`Flask.route` but for a blueprint.  The endpoint for the
-        :func:`url_for` function is prefixed with the name of the blueprint.
-        """
+    def __init__(self, name, module, use_cache=True):
+        super(Rest, self).__init__(name, module)
+        if use_cache:
+            self.cache = cache.cache
 
+    def route(self, rule, cached=False, timeout=None, **options):
         def decorator(f):
-            decorated_rule = rule
             endpoint = options.pop("endpoint", f.__name__)
-            self.add_url_rule(decorated_rule, endpoint, self.rest(f),
-                              **options)
+            decorated = self.rest(f, cached, timeout)
+            self.add_url_rule(rule, endpoint, decorated, **options)
             return f
 
         return decorator
 
-    def rest(self, func):
+    def rest(self, func, cached=False, timeout=None):
+        @self.cache.cached(timeout=timeout)
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapped_with_cached(*args, **kwargs):
             try:
                 data = func(*args, **kwargs)
                 if data is None:
                     return make_response()
-                if isinstance(data, (dict, list, tuple, set)):
+                if isinstance(data, (
+                        dict, list, tuple, set, str, int, float, unicode)):
                     return jsonify(data)
                 else:
                     return jsonify(data.__dict__)
-            except Exception as e:
+            except custom_exceptions.BaseCheckedException as e:
                 res = make_response()
                 res.data = str(e)
                 res.status = '201'
                 return res
 
-        return wrapper
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            try:
+                data = func(*args, **kwargs)
+                if data is None:
+                    return make_response()
+                if isinstance(data, (
+                        dict, list, tuple, set, str, int, float, unicode)):
+                    return jsonify(data)
+                else:
+                    return jsonify(data.__dict__)
+            except custom_exceptions.BaseCheckedException as e:
+                res = make_response()
+                res.data = str(e)
+                res.status = '201'
+                return res
+
+        return wrapped_with_cached if cached else wrapped

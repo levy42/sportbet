@@ -1,0 +1,6 @@
+# results
+NULL = 0
+HOME_WIN = 1
+AWAY_WIN = 2
+DRAW = 3
+NOT_PLAYED = 4

@@ -1,0 +1,147 @@
+{
+   "events":[
+      {
+         "event_edition":913,
+         "event_id":5935062,
+         "event_dt":"13.10 - 14:20",
+         "event_dt_raw":"2016-10-13 11:20:00",
+         "event_name":"Angelique Kerber - Louisa Chirico",
+         "event_status_desc_name":"1/8 final",
+         "tournament_name":"Hong Kong, China",
+         "sport_name":"Tennis",
+         "sport_id":2,
+         "category_name":"WTA",
+         "result_game_total_result_total":"2:1 (6:2,3:6,6:2) "
+      },
+      {
+         "event_edition":913,
+         "event_id":5935983,
+         "event_dt":"13.10 - 14:10",
+         "event_dt_raw":"2016-10-13 11:10:00",
+         "event_name":"Paul Gauzy - Eric Jouti",
+         "event_status_desc_name":"",
+         "tournament_name":"Challenger Series",
+         "sport_name":"Table Tennis",
+         "sport_id":48,
+         "category_name":"Europe",
+         "result_game_total_result_total":"0:3 (8:11,2:11,5:11)"
+      },
+      {
+         "event_edition":913,
+         "event_id":5936011,
+         "event_dt":"13.10 - 14:10",
+         "event_dt_raw":"2016-10-13 11:10:00",
+         "event_name":"Rostislav Dovgan - Vladislav Klim",
+         "event_status_desc_name":"",
+         "tournament_name":"TT-CUP",
+         "sport_name":"Table Tennis",
+         "sport_id":48,
+         "category_name":"Ukraine",
+         "result_game_total_result_total":"0:3 (8:11,8:11,8:11)"
+      },
+      {
+         "event_edition":913,
+         "event_id":5938153,
+         "event_dt":"13.10 - 14:00",
+         "event_dt_raw":"2016-10-13 11:00:00",
+         "event_name":"L. Baumann /  A. Fontaine - J. Finne-Ipsen / R. Soby Hansen",
+         "event_status_desc_name":"1/16 Final",
+         "tournament_name":"Yonex Dutch Open - Womens Doubles",
+         "sport_name":"Badminton",
+         "sport_id":33,
+         "category_name":"Grand Prix",
+         "result_game_total_result_total":"0:2 (19:21,20:22)"
+      },
+      {
+         "event_edition":913,
+         "event_id":5937602,
+         "event_dt":"13.10 - 13:50",
+         "event_dt_raw":"2016-10-13 10:50:00",
+         "event_name":"Aleksey Krutko - Oleg Biletskiy",
+         "event_status_desc_name":"",
+         "tournament_name":"TT-CUP",
+         "sport_name":"Table Tennis",
+         "sport_id":48,
+         "category_name":"Ukraine",
+         "result_game_total_result_total":"3:0 (11:5,11:7,11:5)"
+      },
+      {
+         "event_edition":913,
+         "event_id":5936009,
+         "event_dt":"13.10 - 13:50",
+         "event_dt_raw":"2016-10-13 10:50:00",
+         "event_name":"Roman Makarenko - Eugene Masko",
+         "event_status_desc_name":"",
+         "tournament_name":"TT-CUP",
+         "sport_name":"Table Tennis",
+         "sport_id":48,
+         "category_name":"Ukraine",
+         "result_game_total_result_total":"3:1 (13:11,11:7,9:11,11:7)"
+      },
+      {
+         "event_edition":913,
+         "event_id":5936008,
+         "event_dt":"13.10 - 13:30",
+         "event_dt_raw":"2016-10-13 10:30:00",
+         "event_name":"Anatoliy Zamkovoy - Vitaliy Boyko",
+         "event_status_desc_name":"",
+         "tournament_name":"TT-CUP",
+         "sport_name":"Table Tennis",
+         "sport_id":48,
+         "category_name":"Ukraine",
+         "result_game_total_result_total":"1:3 (7:11,7:11,11:8,10:12)"
+      },
+      {
+         "event_edition":913,
+         "event_id":5935966,
+         "event_dt":"13.10 - 13:30",
+         "event_dt_raw":"2016-10-13 10:30:00",
+         "event_name":"Segun Toriola - Evgueni Chtchetinine",
+         "event_status_desc_name":"",
+         "tournament_name":"Challenger Series",
+         "sport_name":"Table Tennis",
+         "sport_id":48,
+         "category_name":"Europe",
+         "result_game_total_result_total":"3:0 (11:6,11:6,11:9)"
+      },
+      {
+         "event_edition":913,
+         "event_id":5938143,
+         "event_dt":"13.10 - 13:15",
+         "event_dt_raw":"2016-10-13 10:15:00",
+         "event_name":"J. Magee / S. Magee - D. Stipsits / R. Zirnwald",
+         "event_status_desc_name":"1/16 Final",
+         "tournament_name":"Yonex Dutch Open - Mens Doubles",
+         "sport_name":"Badminton",
+         "sport_id":33,
+         "category_name":"Grand Prix",
+         "result_game_total_result_total":"2:1 (18:21,21:18,21:13)"
+      },
+      {
+         "event_edition":913,
+         "event_id":5937601,
+         "event_dt":"13.10 - 13:10",
+         "event_dt_raw":"2016-10-13 10:10:00",
+         "event_name":"Vladimir Lutskiy - Alexey Gorbanenko",
+         "event_status_desc_name":"",
+         "tournament_name":"TT-CUP",
+         "sport_name":"Table Tennis",
+         "sport_id":48,
+         "category_name":"Ukraine",
+         "result_game_total_result_total":"3:0 (11:9,11:2,11:2)"
+      }
+   ],
+   "pages":{
+      "paginator_current":1,
+      "paginator_prev":[
+
+      ],
+      "paginator_next":[
+         2,
+         3,
+         4,
+         5,
+         6
+      ]
+   }
+}
