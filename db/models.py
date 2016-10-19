@@ -1,4 +1,5 @@
-from flask_sqlalchemy import SQLAlchemy, orm
+from flask_sqlalchemy import SQLAlchemy
+import json
 
 db = SQLAlchemy()
 
@@ -44,14 +45,28 @@ class Bet(db.Model, Base):
     bet_code = db.Column(db.String)
 
 
+class Evaluation(db.Model, Base):
+    event_id = db.Column(db.Integer, db.ForeignKey("event.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    bet_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    values_string = db.Column(db.String, name="values")
+    status = db.Column(db.Integer)
+
+    @property
+    def values(self):
+        return json.loads(self.values_string)
+
+
+class Alarm(db.Model, Base):
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    text = db.Column(db.Text)
+    datetime = db.Column(db.DateTime)
+    is_read = db.Column(db.Boolean)
+
+
 class Market(db.Model, Base):
     code = db.Column(db.String)
-
-
-class UserProfile(db.Model, Base):
-    user_id = db.Column(db.Integer)
-    rate = db.Column(db.Float)
-    balance = db.Column(db.Integer)
+    type = db.Column(db.Integer)
 
 
 def to_dict(result):

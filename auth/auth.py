@@ -16,10 +16,11 @@ bcrypt = None
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.String(20), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     registered_on = db.Column(db.DateTime, nullable=False)
+    rate = db.Column(db.Integer)
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, id, username, password, admin=False):
@@ -120,7 +121,6 @@ def login():
         session['token'] = generate_token()
         session['username'] = user.username
         session['user_id'] = user.id
-        print('a')
     else:
         raise Exception("Invalid username of password")
 

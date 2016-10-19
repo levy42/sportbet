@@ -7,7 +7,7 @@ var app = angular.module('App', ['AppServices', 'Auth'])
         function ($routeProvider, $locationProvider) {
             $routeProvider
                 .when('/', {
-                    templateUrl: 'static/partials/ring.html',
+                    templateUrl: 'static/partials/index.html',
                     controller: HomeController
                 })
                 .when('/login', {
