@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 import json
+import constants
 
 db = SQLAlchemy()
 
@@ -50,11 +51,14 @@ class Evaluation(db.Model, Base):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     bet_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     values_string = db.Column(db.String, name="values")
-    status = db.Column(db.Integer)
+    status = db.Column(db.Integer, default=constants.NEW)
 
     @property
     def values(self):
         return json.loads(self.values_string)
+
+    def set_values(self, values):
+        self.values_string = json.dumps(values)
 
 
 class Alarm(db.Model, Base):

@@ -32,3 +32,6 @@ class Parser(events_parcer.Parser):
 
     def _league_ex_id(self, internal_id):
         return internal_id
+
+
+parcer = Parser()
