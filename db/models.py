@@ -41,9 +41,24 @@ class Event(db.Model, Base):
 
 class Bet(db.Model, Base):
     event_id = db.Column(db.Integer, db.ForeignKey("event.id"))
-    user_id = db.Column(db.Integer())
-    applier_id = db.Column(db.Integer)
     bet_code = db.Column(db.String)
+    market_id = db.Column(db.Integer, db.ForeignKey("market.id"))
+    values_string = db.Column(db.String, name="values")
+    outcomes_string = db.Column(db.Text, name="outcomes")
+
+    @property
+    def values(self):
+        return [float(v) for v in json.loads(self.values_string)]
+
+    def set_values(self, values):
+        self.values_string = json.dumps(values)
+
+    @property
+    def outcomes(self):
+        return json.loads(self.outcomes_string)
+
+    def set_outcomes(self, values):
+        self.outcomes_string = json.dumps(values)
 
 
 class Evaluation(db.Model, Base):
@@ -51,11 +66,12 @@ class Evaluation(db.Model, Base):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     bet_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     values_string = db.Column(db.String, name="values")
+    outcomes_string = db.Column(db.Text, name="outcomes")
     status = db.Column(db.Integer, default=constants.NEW)
 
     @property
     def values(self):
-        return json.loads(self.values_string)
+        return [float(v) for v in json.loads(self.values_string)]
 
     def set_values(self, values):
         self.values_string = json.dumps(values)
@@ -71,6 +87,11 @@ class Alarm(db.Model, Base):
 class Market(db.Model, Base):
     code = db.Column(db.String)
     type = db.Column(db.Integer)
+    outcomes_string = db.Column(db.Text, name="outcomes")
+
+    @property
+    def outcomes(self):
+        return json.loads(self.outcomes_string)
 
 
 def to_dict(result):

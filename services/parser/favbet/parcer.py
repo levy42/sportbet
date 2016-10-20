@@ -3,11 +3,11 @@ import utils
 
 
 class Parser(events_parcer.Parser):
-    def get_events(self, leagues_ids=None, datetime=None):
-        pass
+    def get_events(self, league_id):
+        return utils.get_events(league_id)
 
     def get_results(self, events_ids=None):
-        pass
+        raise NotImplementedError
 
     def get_last_day_results(self, leagues_ids=None):
         if not leagues_ids:
@@ -17,9 +17,6 @@ class Parser(events_parcer.Parser):
                 mapped_results[self._team_in_id(r)] = results[r]
         else:
             raise NotImplementedError
-
-    def get_event(self, id):
-        pass
 
     def _team_in_id(self, external_id):
         return external_id
@@ -32,6 +29,3 @@ class Parser(events_parcer.Parser):
 
     def _league_ex_id(self, internal_id):
         return internal_id
-
-
-parcer = Parser()

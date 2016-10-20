@@ -6,11 +6,7 @@ class Parser(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_events(self, leagues_ids=None, datetime=None):
-        pass
-
-    @abstractmethod
-    def get_event(self, id):
+    def get_events(self, league_id):
         pass
 
     @abstractmethod
