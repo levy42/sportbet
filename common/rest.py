@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import Blueprint, jsonify, make_response
 
-import custom_exceptions
+import exceptions
 import cache
 
 
@@ -33,7 +33,7 @@ class Rest(Blueprint):
                     return jsonify(data)
                 else:
                     return jsonify(data.__dict__)
-            except custom_exceptions.BaseCheckedException as e:
+            except exceptions.BaseCheckedException as e:
                 res = make_response()
                 res.data = str(e)
                 res.status = '201'
@@ -50,7 +50,7 @@ class Rest(Blueprint):
                     return jsonify(data)
                 else:
                     return jsonify(data.__dict__)
-            except custom_exceptions.BaseCheckedException as e:
+            except exceptions.BaseCheckedException as e:
                 res = make_response()
                 res.data = str(e)
                 res.status = '201'

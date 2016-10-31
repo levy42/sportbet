@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 import json
-import constants
+from constants import MarketType, Result, EvaluationStatus
 
 db = SQLAlchemy()
 
@@ -34,7 +34,7 @@ class Event(db.Model, Base):
     team1_id = db.Column(db.Integer, db.ForeignKey("team.id"))
     team2_id = db.Column(db.Integer, db.ForeignKey("team.id"))
     date = db.Column(db.DateTime)
-    result = db.Column(db.Integer)
+    result = db.Column(db.Enum(*Result._member_names_))
     result_info = db.Column(db.String(100))
     info = db.Column(db.Text)
 
@@ -43,38 +43,36 @@ class Bet(db.Model, Base):
     event_id = db.Column(db.Integer, db.ForeignKey("event.id"))
     bet_code = db.Column(db.String)
     market_id = db.Column(db.Integer, db.ForeignKey("market.id"))
-    values_string = db.Column(db.String, name="values")
-    outcomes_string = db.Column(db.Text, name="outcomes")
+    values = db.Column(db.String)
+    outcomes = db.Column(db.Text)
 
-    @property
-    def values(self):
-        return [float(v) for v in json.loads(self.values_string)]
+    def get_values(self):
+        return [float(v) for v in json.loads(self.values)]
 
     def set_values(self, values):
-        self.values_string = json.dumps(values)
+        self.values = json.dumps(values)
 
-    @property
-    def outcomes(self):
-        return json.loads(self.outcomes_string)
+    def get_outcomes(self):
+        return json.loads(self.outcomes)
 
     def set_outcomes(self, values):
-        self.outcomes_string = json.dumps(values)
+        self.outcomes = json.dumps(values)
 
 
 class Evaluation(db.Model, Base):
     event_id = db.Column(db.Integer, db.ForeignKey("event.id"))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     bet_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    values_string = db.Column(db.String, name="values")
-    outcomes_string = db.Column(db.Text, name="outcomes")
-    status = db.Column(db.Integer, default=constants.NEW)
+    values = db.Column(db.String)
+    outcomes = db.Column(db.Text)
+    status = db.Column(db.Enum(*EvaluationStatus._member_names_),
+                       default=EvaluationStatus.NEW)
 
-    @property
-    def values(self):
-        return [float(v) for v in json.loads(self.values_string)]
+    def get_values(self):
+        return [float(v) for v in json.loads(self.values)]
 
     def set_values(self, values):
-        self.values_string = json.dumps(values)
+        self.values = json.dumps(values)
 
 
 class Alarm(db.Model, Base):
@@ -86,12 +84,11 @@ class Alarm(db.Model, Base):
 
 class Market(db.Model, Base):
     code = db.Column(db.String)
-    type = db.Column(db.Integer)
-    outcomes_string = db.Column(db.Text, name="outcomes")
+    type = db.Column('type', db.Enum(*MarketType._member_names_))
+    outcomes = db.Column(db.Text)
 
-    @property
-    def outcomes(self):
-        return json.loads(self.outcomes_string)
+    def get_outcomes(self):
+        return json.loads(self.outcomes)
 
 
 def to_dict(result):

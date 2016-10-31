@@ -1,5 +1,5 @@
 from services.parser import events_parcer
-from flask_template import app
+from main import app
 from db.models import *
 from sqlalchemy import update
 import constants as c

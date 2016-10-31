@@ -1,5 +1,6 @@
 from flask.ext.script import Manager
-from flask_template import app, db
+from main import app
+from db.models import db
 from db.models import *
 from services.parser.favbet import utils
 
@@ -63,6 +64,16 @@ def create_events():
             db.session.commit()
         except Exception as e:
             print(e)
+
+def create_market():
+    import constants
+    market = Market()
+    market.code = '1X2'
+    market.name = 'Winner'
+    market.outcomes_string  ='[1,X,2]'
+    market.type = constants.MarketType.COEFFICIENT
+    db.session
+
 
 
 if __name__ == '__main__':

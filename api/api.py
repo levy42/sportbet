@@ -6,10 +6,10 @@ import json
 api = rest.Rest("api", __name__)
 
 
-@api.route("/events", cached=True)
+@api.route("/events", cached=False, timeout=20)
 def get_events():
     args = request.args
-    return to_dict(Event.query.filter_by(**args).all())
+    return to_dict(Event.query.filter_by(**args).all()) * 10
 
 
 @api.route("/sports", cached=True)
