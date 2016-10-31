@@ -9,7 +9,7 @@ import (
 )
 
 type MarketType struct {
-	Id         int `json:"id"`
+	gorm.Model
 	Name       string `json:"name"`
 	Code       string `json:"code"`
 	Outcomes   []string `json:"outcomes" gorm:"-"`
@@ -18,12 +18,22 @@ type MarketType struct {
 	sources    []MarketType `gorm:"-"`
 }
 
+type OutcomeType struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	Value float32 `json:"value"`
+	Parameter float32 `json:"parameter"`
+	Code string `json:"code"`
+	FullCode string `json:"full_code"`
+	MarketTypeId float32 `json:"market_type_id"`
+}
+
 type Market struct {
 	Id        int `json:"id"`
 	Name      string `json:"n"`
 	Code      string `json:"c"`
-	Outcomes  []float32 `json:"o" gorm:"-"`
-	Parameter float32 `json:"p" gorm:"-"`
+	Outcomes  []float32 `json:"o"`
+	Parameter float32 `json:"p"`
 }
 
 type Outcome struct {
@@ -41,6 +51,22 @@ type TestModel struct {
 	name string
 }
 
+var db gorm.DB
+func main() {
+	db, err := gorm.Open("sqlite3", "app.db")
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+	db.AutoMigrate(&MarketType{})
+	db.AutoMigrate(&MarketType{})
+	db.AutoMigrate(&Outcome{})
+	db.AutoMigrate(&TestModel{})
+	http.HandleFunc("/", Hello)
+	http.HandleFunc("/markets", MarketTypes)
+	http.ListenAndServe(":3000", nil)
+}
+
 func marketTypes() []MarketType {
 	return []MarketType{
 		{Id:1, Name:"NoDraw",Code: "NO_DRAW",Outcomes: []string{"1", "2"}},
@@ -55,20 +81,7 @@ func Hello(rw http.ResponseWriter, request *http.Request) {
 	rw.Write([]byte("Hello world."))
 }
 func MarketTypes(rw http.ResponseWriter, request *http.Request) {
+	marketTypes = db.
 	r, _ := json.Marshal(marketTypes())
 	rw.Write(r)
-}
-func main() {
-	db, err := gorm.Open("sqlite3", "app.db")
-	if err != nil {
-		panic("failed to connect database")
-	}
-	defer db.Close()
-	db.AutoMigrate(&MarketType{})
-	db.AutoMigrate(&MarketType{})
-	db.AutoMigrate(&Outcome{})
-	db.AutoMigrate(&TestModel{})
-	http.HandleFunc("/", Hello)
-	http.HandleFunc("/markets", MarketTypes)
-	http.ListenAndServe(":3000", nil)
 }
