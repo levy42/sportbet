@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"runtime"
+	"strconv"
 )
 
 type Sport struct {
@@ -15,14 +16,13 @@ type Sport struct {
 	Name string `json:"name"`
 }
 type MarketType struct {
-	Id       int `json:"id"`
-	Name     string `json:"name"`
-	Code     string `json:"code"`
-	SportId  int `json:"sport_id"`
-	Outcomes []OutcomeType `json:"outcomes" gorm:"ForeignKey:MarketTypeId"`
+	Id        int `json:"id"`
+	Name      string `json:"name"`
+	Code      string `json:"code"`
+	SportId   int `json:"sport_id"`
+	Outcomes  []OutcomeType `json:"outcomes" gorm:"ForeignKey:MarketTypeId"`
 	Parameter float32 `json:"parameter"`
 }
-
 type OutcomeType struct {
 	Id           int `json:"id"`
 	Name         string `json:"name"`
@@ -33,31 +33,27 @@ type OutcomeType struct {
 	MarketTypeId int `json:"market_type_id"`
 	SportId      int `json:"sport_id"`
 }
-
 type Market struct {
-	Name string `json:"name"`
-	Outcomes  []float32 `json:"o"`
-	Parameter float32 `json:"p"`
+	Name         string `json:"name"`
+	Outcomes     []float32 `json:"o"`
+	Parameter    float32 `json:"p"`
 	MarketTypeId int `json:"market_type_id"`
 }
-
 type Outcome struct {
-	Name string `json:"name"`
-	Value     float32 `json:"value"`
-	Parameter float32 `json:"parameter"`
+	Name          string `json:"name"`
+	Value         float32 `json:"value"`
+	Parameter     float32 `json:"parameter"`
 	OutcomeTypeId int `json:"outcome_type_id"`
 }
-
 type Model struct {
 	Id          int `json:"id"`
 	SportId     int `json:"sport_id"`
-	Markets     []MarketType `json:"markets"`
 	Description string `json:"description"`
 	InputParams []string `json:"input_params"`
-	innerParams []string
+	maxRange    int
+	valueMap    map[float32]int
 	tables      map[int]OutcomeTable
 }
-
 type OutcomeTable struct {
 	KeyParam    string    // param that effect on the outcome
 	OutcomeType OutcomeType
@@ -71,22 +67,10 @@ func loadModel(name string) {
 	}
 	var model Model
 	json.Unmarshal(b, &model) // very large operation
-	l := len(model.InputParams)
-	z := 0
-	model.innerParams = [l * l / 2]string{}
-	for i := 0; i < l; i++ {
-		for j := 0; j != i && j < l; j++ {
-			model.innerParams[z] = fmt.Sprintf("%s_%s",
-				model.InputParams[i], model.InputParams[j])
-			z++
-		}
-	}
 }
 
 var db *gorm.DB
 var models *map[int]Model
-
-const MAX_VALUE int = 1000
 
 func main() {
 	runtime.GOMAXPROCS(4) // 4 cores, input your number of cores
@@ -96,7 +80,6 @@ func main() {
 		panic("failed to connect database")
 	}
 	defer db.Close()
-
 	http.HandleFunc("/sports", Sports)
 	http.HandleFunc("/markets", MarketTypes)
 	http.HandleFunc("/models", Models)
@@ -126,24 +109,43 @@ func Models(rw http.ResponseWriter, request *http.Request) {
 }
 
 func Calculate(rw http.ResponseWriter, request *http.Request) {
-
+	modelId := request.URL.Query()["model"][0]
+	var params map[string]float32
+	for k, v := range request.URL.Query() {
+		params[k], _ = strconv.ParseFloat(v[0], 32)
+	}
+	result, _ := json.Marshal(calculate(modelId, params))
+	rw.Write(result)
 }
 
 func LoadModel(rw http.ResponseWriter, request *http.Request) {
 	name := request.URL.Query()["name"][0]
 	go loadModel(name)
-	rw.Write([]byte("Loading started"))
 }
 
 func calculate(modelId, params map[string]float32) []Outcome {
+	model := models[modelId]
 	z := 0
 	l := len(params)
-	var innerParams [l * l / 2]string
+	var innerParams [l * l]string
 	for i := 0; i < l; i++ {
-		for j := 0; j != i && j < l; j++ {
-			nnerParams[z] = fmt.Sprintf("%s_%s",
-				model.InputParams[i], model.InputParams[j])
+		param1 := model.valueMap[params[model.InputParams[i]]]
+		innerParams[model.InputParams[i]] = param1
+		for j := 0; j < l; j++ {
+			name := model.InputParams[i] + model.InputParams[j]
+			param2 := model.valueMap[params[model.InputParams[j]]]
+			innerParams[name] = param1 * model.maxRange + param2
 			z++
 		}
 	}
+	var outcomes [len(model.tables)]Outcome
+	var i int
+	for _, t := range model.tables {
+		value := t.Values[innerParams[t.KeyParam]]
+		oType := t.OutcomeType
+		outcome := Outcome{oType.Name, value, oType.Parameter, oType.Id}
+		outcomes[i] = outcome
+		i++
+	}
+	return outcomes
 }
