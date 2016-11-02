@@ -49,19 +49,32 @@ type Model struct {
 	Id          int `json:"id"`
 	SportId     int `json:"sport_id"`
 	Description string `json:"description"`
-	InputParams []string `json:"input_params"`
-	maxRange    int
-	valueMap    map[float32]int
-	tables      map[int]OutcomeTable
+	InputParams [] InputParam `json:"input_params"`
+	Tables      map[int]OutcomeTable `json:"tables"`
+}
+type ModelMeta struct {
+	Id          int `json:"id"`
+	SportId     int `json:"sport_id"`
+	Description string `json:"description"`
+	InputParams []struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}
 }
 type OutcomeTable struct {
-	KeyParam    string    // param that effect on the outcome
-	OutcomeType OutcomeType
-	Values      []float32 // can be vary large, over million items
+	KeyParam    string `json:"key_param"` // param that effect on the outcome
+	OutcomeType OutcomeType `json:"outcome_type"`
+	Values      []float32 `json:"values"` // can be vary large, over million items
+}
+type InputParam struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Type        int `json:"type"`
+	valueMap    map[float32]int `json:"value_map"`
 }
 
 func loadModel(name string) {
-	b, err := ioutil.ReadFile("name") // just pass the file name
+	b, err := ioutil.ReadFile("models/" + name) // just pass the file name
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -70,7 +83,8 @@ func loadModel(name string) {
 }
 
 var db *gorm.DB
-var models *map[int]Model
+var models map[int]Model
+var modelsMeta map[int]ModelMeta
 
 func main() {
 	runtime.GOMAXPROCS(4) // 4 cores, input your number of cores
@@ -80,6 +94,7 @@ func main() {
 		panic("failed to connect database")
 	}
 	defer db.Close()
+	db.AutoMigrate(&Sport{}, &MarketType{}, &OutcomeType{})
 	http.HandleFunc("/sports", Sports)
 	http.HandleFunc("/markets", MarketTypes)
 	http.HandleFunc("/models", Models)
@@ -109,10 +124,11 @@ func Models(rw http.ResponseWriter, request *http.Request) {
 }
 
 func Calculate(rw http.ResponseWriter, request *http.Request) {
-	modelId := request.URL.Query()["model"][0]
+	modelId, _ := strconv.Atoi(request.URL.Query()["model"][0])
 	var params map[string]float32
 	for k, v := range request.URL.Query() {
-		params[k], _ = strconv.ParseFloat(v[0], 32)
+		f, _ := strconv.ParseFloat(v[0], 32)
+		params[k] = float32(f)
 	}
 	result, _ := json.Marshal(calculate(modelId, params))
 	rw.Write(result)
@@ -123,25 +139,38 @@ func LoadModel(rw http.ResponseWriter, request *http.Request) {
 	go loadModel(name)
 }
 
-func calculate(modelId, params map[string]float32) []Outcome {
+func hashForTwo(one int, two int, range1 int, range2 int) int {
+	if range1 > range2 {
+		return two * range1 + one
+	} else {
+		return one * range2 + two
+	}
+}
+func calculate(modelId int, params map[string]float32) []Outcome {
 	model := models[modelId]
 	z := 0
 	l := len(params)
-	var innerParams [l * l]string
+	innerParams := make(map[string]int, l * l)
 	for i := 0; i < l; i++ {
-		param1 := model.valueMap[params[model.InputParams[i]]]
-		innerParams[model.InputParams[i]] = param1
+		option := model.InputParams[i]
+		p1 := option.valueMap[params[option.Name]]
+		innerParams[option.Name] = p1
 		for j := 0; j < l; j++ {
-			name := model.InputParams[i] + model.InputParams[j]
-			param2 := model.valueMap[params[model.InputParams[j]]]
-			innerParams[name] = param1 * model.maxRange + param2
+			suboption := model.InputParams[j]
+			name := option.Name + suboption.Name
+			p2 := suboption.valueMap[params[suboption.Name]]
+			innerParams[name] = hashForTwo(p1, p2,
+				len(option.valueMap), len(suboption.valueMap))
 			z++
 		}
 	}
-	var outcomes [len(model.tables)]Outcome
+	outcomes := make([]Outcome, len(model.Tables))
 	var i int
 	for _, t := range model.tables {
 		value := t.Values[innerParams[t.KeyParam]]
+		if value == 0 {
+			continue
+		}
 		oType := t.OutcomeType
 		outcome := Outcome{oType.Name, value, oType.Parameter, oType.Id}
 		outcomes[i] = outcome
