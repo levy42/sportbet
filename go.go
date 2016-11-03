@@ -1,90 +1,66 @@
 package main
 
 import (
-	"net/http"
-	"github.com/jinzhu/gorm"
-	_"github.com/mattn/go-sqlite3"
 	"encoding/json"
-	"fmt"
+	"github.com/jinzhu/gorm"
+	//_ "github.com/mattn/go-sqlite3"
 	"io/ioutil"
+	"net/http"
 	"runtime"
 	"strconv"
 )
 
 type Sport struct {
-	Id   int `json:"id"`
+	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
-type MarketType struct {
-	Id        int `json:"id"`
-	Name      string `json:"name"`
-	Code      string `json:"code"`
-	SportId   int `json:"sport_id"`
-	Outcomes  []OutcomeType `json:"outcomes" gorm:"ForeignKey:MarketTypeId"`
-	Parameter float32 `json:"parameter"`
-}
 type OutcomeType struct {
-	Id           int `json:"id"`
-	Name         string `json:"name"`
+	Id           int     `json:"id"`
+	Name         string  `json:"name"`
 	Value        float32 `json:"value"`
 	Parameter    float32 `json:"parameter"`
-	Code         string `json:"code"`
-	FullCode     string `json:"full_code"`
-	MarketTypeId int `json:"market_type_id"`
-	SportId      int `json:"sport_id"`
-}
-type Market struct {
-	Name         string `json:"name"`
-	Outcomes     []float32 `json:"o"`
-	Parameter    float32 `json:"p"`
-	MarketTypeId int `json:"market_type_id"`
+	Code         string  `json:"code"`
+	FullCode     string  `json:"full_code"`
+	MarketTypeId int     `json:"market_type_id"`
+	SportId      int     `json:"sport_id"`
 }
 type Outcome struct {
-	Name          string `json:"name"`
+	Name          string  `json:"name"`
 	Value         float32 `json:"value"`
 	Parameter     float32 `json:"parameter"`
-	OutcomeTypeId int `json:"outcome_type_id"`
+	OutcomeTypeId int     `json:"outcome_type_id"`
 }
 type Model struct {
-	Id          int `json:"id"`
-	SportId     int `json:"sport_id"`
-	Description string `json:"description"`
-	InputParams [] InputParam `json:"input_params"`
-	Tables      map[int]OutcomeTable `json:"tables"`
-}
-type ModelMeta struct {
-	Id          int `json:"id"`
-	SportId     int `json:"sport_id"`
-	Description string `json:"description"`
-	InputParams []struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-	}
+	Id           int                  `json:"id"`
+	SportId      int                  `json:"sport_id"`
+	Description  string               `json:"description"`
+	InputParams  []Parameter          `json:"input_params"`
+	TablesStage1 map[int]OutcomeTable `json:"tables_stage_1,omitempty"`
+	TablesStage2 map[int]OutcomeTable `json:"tables_stage_2,omitempty"`
 }
 type OutcomeTable struct {
-	KeyParam    string `json:"key_param"` // param that effect on the outcome
-	OutcomeType OutcomeType `json:"outcome_type"`
-	Values      []float32 `json:"values"` // can be vary large, over million items
+	ParamsIds   []int       `json:"key_param"` // param that effect on the outcome
+	OutcomeType *OutcomeType `json:"outcome_type"`
+	Values      []float32   `json:"values"`    // can be vary large, over million items
+	OutParam    *Parameter   `json:"input_param"`
 }
-type InputParam struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Type        int `json:"type"`
-	valueMap    map[float32]int `json:"value_map"`
+type Parameter struct {
+	Id          int             `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	ValueMap    map[float32]int `json:"value_map,omitempty"` // int represent of float value of outcome, example {1.01:1, 1.02:2 ...}
+	VRange      int             `json:"v_range,omitempty"`
 }
 
 func loadModel(name string) {
-	b, err := ioutil.ReadFile("models/" + name) // just pass the file name
-	if err != nil {
-		fmt.Print(err)
-	}
+	b, _ := ioutil.ReadFile("models/" + name) // just pass the file name
 	var model Model
 	json.Unmarshal(b, &model) // very large operation
+	models[model.Id] = model
 }
 
 var db *gorm.DB
 var models map[int]Model
-var modelsMeta map[int]ModelMeta
 
 func main() {
 	runtime.GOMAXPROCS(4) // 4 cores, input your number of cores
@@ -94,9 +70,9 @@ func main() {
 		panic("failed to connect database")
 	}
 	defer db.Close()
-	db.AutoMigrate(&Sport{}, &MarketType{}, &OutcomeType{})
+	db.AutoMigrate(&Sport{}, &OutcomeType{})
 	http.HandleFunc("/sports", Sports)
-	http.HandleFunc("/markets", MarketTypes)
+	http.HandleFunc("/outcomes", OutcomeTypes)
 	http.HandleFunc("/models", Models)
 	http.HandleFunc("/loadmodel", LoadModel) // admin only
 	http.HandleFunc("/caclulate", Calculate)
@@ -109,12 +85,11 @@ func Sports(rw http.ResponseWriter, request *http.Request) {
 	rw.Write(result)
 }
 
-func MarketTypes(rw http.ResponseWriter, request *http.Request) {
+func OutcomeTypes(rw http.ResponseWriter, request *http.Request) {
 	sportIds := request.URL.Query()["sport"]
-	var markets []MarketType
-	fmt.Println(sportIds)
-	db.Where("sport_id in (?)", sportIds).Find(&markets)
-	result, _ := json.Marshal(markets)
+	var outcomes []OutcomeType
+	db.Where("sport_id in (?)", sportIds).Find(&outcomes)
+	result, _ := json.Marshal(outcomes)
 	rw.Write(result)
 }
 
@@ -124,13 +99,50 @@ func Models(rw http.ResponseWriter, request *http.Request) {
 }
 
 func Calculate(rw http.ResponseWriter, request *http.Request) {
+	type HashedParam struct{ value, vRange int }
 	modelId, _ := strconv.Atoi(request.URL.Query()["model"][0])
-	var params map[string]float32
-	for k, v := range request.URL.Query() {
-		f, _ := strconv.ParseFloat(v[0], 32)
-		params[k] = float32(f)
+	params := request.URL.Query()["model"]
+	model := models[modelId]
+	var hashedParams map[int]HashedParam
+	for i, v := range params {
+		option := model.InputParams[i]
+		float_64value, _ := strconv.ParseFloat(v, 32)
+		hashedParams[i] = HashedParam{option.ValueMap[float32(float_64value)], option.VRange}
 	}
-	result, _ := json.Marshal(calculate(modelId, params))
+	outcomes := make([]Outcome, len(model.TablesStage1) + len(model.TablesStage2))
+	var outcome_index int
+	getValue := func(t OutcomeTable) float32 {
+		var hash int
+		if len(t.ParamsIds) == 1 {
+			hash = hashedParams[t.ParamsIds[0]].value
+		} else {
+			hash = hashForTwo(hashedParams[t.ParamsIds[0]].value,
+				hashedParams[t.ParamsIds[1]].value,
+				hashedParams[t.ParamsIds[0]].vRange,
+				hashedParams[t.ParamsIds[1]].value)
+		}
+		return t.Values[hash]
+	}
+	for _, t := range model.TablesStage1 {
+		value := getValue(t)
+		if value == 0 {
+			continue
+		}
+		outcomes[outcome_index] = Outcome{t.OutcomeType.Name, value, t.OutcomeType.Parameter, t.OutcomeType.Id}
+		if t.OutParam != nil {
+			hashedParams[t.OutParam.Id] = HashedParam{t.OutParam.ValueMap[value], t.OutParam.VRange}
+		}
+		outcome_index++
+	}
+	for _, t := range model.TablesStage1 {
+		value := getValue(t)
+		if value == 0 {
+			continue
+		}
+		outcomes[outcome_index] = Outcome{t.OutcomeType.Name, value, t.OutcomeType.Parameter, t.OutcomeType.Id}
+		outcome_index++
+	}
+	result, _ := json.Marshal(outcomes)
 	rw.Write(result)
 }
 
@@ -139,42 +151,10 @@ func LoadModel(rw http.ResponseWriter, request *http.Request) {
 	go loadModel(name)
 }
 
-func hashForTwo(one int, two int, range1 int, range2 int) int {
+func hashForTwo(p1, p2, range1, range2 int) int {
 	if range1 > range2 {
-		return two * range1 + one
+		return p2 * range1 + p1
 	} else {
-		return one * range2 + two
+		return p1 * range2 + p2
 	}
-}
-func calculate(modelId int, params map[string]float32) []Outcome {
-	model := models[modelId]
-	z := 0
-	l := len(params)
-	innerParams := make(map[string]int, l * l)
-	for i := 0; i < l; i++ {
-		option := model.InputParams[i]
-		p1 := option.valueMap[params[option.Name]]
-		innerParams[option.Name] = p1
-		for j := 0; j < l; j++ {
-			suboption := model.InputParams[j]
-			name := option.Name + suboption.Name
-			p2 := suboption.valueMap[params[suboption.Name]]
-			innerParams[name] = hashForTwo(p1, p2,
-				len(option.valueMap), len(suboption.valueMap))
-			z++
-		}
-	}
-	outcomes := make([]Outcome, len(model.Tables))
-	var i int
-	for _, t := range model.tables {
-		value := t.Values[innerParams[t.KeyParam]]
-		if value == 0 {
-			continue
-		}
-		oType := t.OutcomeType
-		outcome := Outcome{oType.Name, value, oType.Parameter, oType.Id}
-		outcomes[i] = outcome
-		i++
-	}
-	return outcomes
 }
