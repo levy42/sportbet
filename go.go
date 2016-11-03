@@ -69,6 +69,7 @@ func main() {
 	http.HandleFunc("/outcomes", OutcomeTypes)
 	http.HandleFunc("/models", Models)
 	http.HandleFunc("/loadmodel", LoadModel) // admin only
+	http.Handle("/deletemodel", DeleteModel)
 	http.HandleFunc("/caclulate", Calculate)
 	http.ListenAndServe(":3000", nil)
 }
@@ -146,6 +147,13 @@ func Calculate(rw http.ResponseWriter, request *http.Request) {
 func LoadModel(rw http.ResponseWriter, request *http.Request) {
 	name := request.URL.Query()["name"][0]
 	go loadModel(name)
+}
+
+func DeleteModel(rw http.ResponseWriter, request *http.Request) {
+	id := request.URL.Query()["id"][0]
+	delete(models, id)
+	delete(modelsMeta, id)
+	log.Printf("Model deleted, id = %d", id)
 }
 
 func loadModel(name string) {
