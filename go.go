@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/jinzhu/gorm"
-	_ "github.com/mattn/go-sqlite3"
+	_"github.com/mattn/go-sqlite3"
 	"io/ioutil"
 	"net/http"
 	"runtime"
@@ -69,7 +69,7 @@ func main() {
 	http.HandleFunc("/outcomes", OutcomeTypes)
 	http.HandleFunc("/models", Models)
 	http.HandleFunc("/loadmodel", LoadModel) // admin only
-	http.Handle("/deletemodel", DeleteModel)
+	http.HandleFunc("/deletemodel", DeleteModel)
 	http.HandleFunc("/caclulate", Calculate)
 	http.ListenAndServe(":3000", nil)
 }
@@ -150,7 +150,7 @@ func LoadModel(rw http.ResponseWriter, request *http.Request) {
 }
 
 func DeleteModel(rw http.ResponseWriter, request *http.Request) {
-	id := request.URL.Query()["id"][0]
+	id, _ := strconv.Atoi(request.URL.Query()["id"][0])
 	delete(models, id)
 	delete(modelsMeta, id)
 	log.Printf("Model deleted, id = %d", id)
