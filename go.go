@@ -33,23 +33,23 @@ type Model struct {
 	Id           int                  `json:"id"`
 	SportId      int                  `json:"sport_id"`
 	Description  string               `json:"description"`
-	InputParams  []Parameter          `json:"input_params"`
-	TablesStage1 *map[int]*OutcomeTable `json:"tables_stage_1,omitempty"`
-	TablesStage2 *map[int]*OutcomeTable `json:"tables_stage_2,omitempty"`
+	InputParams  []Parameter          `json:"params"`
+	TablesStage1 *map[int]*OutcomeTable `json:"stage_1,omitempty"`
+	TablesStage2 *map[int]*OutcomeTable `json:"stage_2,omitempty"`
 }
 type OutcomeTable struct {
-	ParamsIds   []int       `json:"key_param"` // param that effect on the outcome
+	ParamsIds   []int       `json:"params"` // param that effect on the outcome
 	OutcomeType *OutcomeType `json:"outcome_type"`
-	Values      []float32   `json:"values"`    // can be vary large, over million items
-	OutParam    *Parameter   `json:"input_param"`
+	Values      []float32   `json:"values"` // can be vary large, over million items
+	OutParam    *Parameter   `json:"out_param"`
 }
 type Parameter struct {
 	Id          int             `json:"id"`
 	Name        string          `json:"name"`
 	Description string          `json:"description"`
 	Type        int             `json:"type"`
-	ValueMap    map[float32]int `json:"value_map,omitempty"` // int represent of float value of outcome, example {1.01:1, 1.02:2 ...}
-	VRange      int             `json:"v_range,omitempty"`
+	ValueMap    map[float32]int `json:"map,omitempty"` // int represent of float value of outcome, example {1.01:1, 1.02:2 ...}
+	VRange      int             `json:"range,omitempty"`
 }
 
 var db *gorm.DB

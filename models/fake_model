@@ -1,0 +1,49 @@
+{
+  "id": 1,
+  "description": "This is fake model",
+  "sport_id": 1,
+  "params": [
+    {
+      "id": 0,
+      "name": "fake",
+      "type": 0,
+      "description": "This is fake param",
+      "map": {
+        "1": 0,
+        "2": 1
+      },
+      "range": 2
+    }
+  ],
+  "stage1": {
+    "1": {
+      "params":[0],
+      "outcome_type": {
+        "id": 1,
+        "name": "fake_outcome",
+        "code": "FK",
+        "parameter": 0
+      },
+      "out_param": null,
+      "values": [
+        999,
+        1000
+      ]
+    }
+  },
+  "stage2": {
+    "1": {
+      "outcome_type": {
+        "id": 2,
+        "name": "fake_outcome2",
+        "code": "FK2",
+        "parameter": 0
+      },
+      "out_param": null,
+      "values": [
+        -999,
+        -1000
+      ]
+    }
+  }
+}
